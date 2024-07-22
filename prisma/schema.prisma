@@ -13,7 +13,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model OlaDbIURD {
-  id           String    @id @default(uuid())
-  date_created DateTime  @default(now()) @db.Date
+model User {
+  id    String @id @default(uuid())
+  name  String
+  email String
+
+  @@map("users")
 }
