@@ -8,12 +8,6 @@ export class QrcodeService {
   constructor(private cacheService: CacheService) {}
 
   async createQrCode(data: CreateQrCodeDTO) {
-    //Lógica para criação do número em cachê
-    this.cacheService.instance.set(data.number, 'pendente');
-    const allKeys = this.cacheService.instance.keys();
-    const allCache = this.cacheService.instance.mget(allKeys);
-
-    //Comunicação Geração QrCode com o Worker
     try {
       const req = await fetch(process.env.URL_WORKER, {
         method: 'GET',
@@ -21,9 +15,19 @@ export class QrcodeService {
 
       const res = await req.json();
 
+      this.cacheService.create(data.number);
+
       return res;
     } catch (err) {
       throw new Error(err);
     }
+  }
+
+  async verifyQrCodeStatus(key: string) {
+    return this.cacheService.findOne(key);
+  }
+
+  async changeQrCodeStatus(key: string, status: 'success' | 'failure') {
+    return this.cacheService.alterStatus(key, status);
   }
 }
