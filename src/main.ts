@@ -18,8 +18,8 @@ async function bootstrap() {
       },
       'token',
     )
-    .setTitle('API App Termos Autorização')
-    .setDescription('Documentação dos end-points da API App Termos Autorização')
+    .setTitle('API Safe Messages')
+    .setDescription('Documentação dos end-points da API Safe Messages')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
