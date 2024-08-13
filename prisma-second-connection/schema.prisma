@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@internal/prisma-second/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SECOND_DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsmeow_app_state_mutation_macs {
+  jid                         String
+  name                        String
+  version                     BigInt
+  index_mac                   Bytes
+  value_mac                   Bytes
+  whatsmeow_app_state_version whatsmeow_app_state_version @relation(fields: [jid, name], references: [jid, name], onDelete: Cascade)
+
+  @@id([jid, name, version, index_mac])
+}
+
+model whatsmeow_app_state_sync_keys {
+  jid              String
+  key_id           Bytes
+  key_data         Bytes
+  timestamp        BigInt
+  fingerprint      Bytes
+  whatsmeow_device whatsmeow_device @relation(fields: [jid], references: [jid], onDelete: Cascade)
+
+  @@id([jid, key_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsmeow_app_state_version {
+  jid                               String
+  name                              String
+  version                           BigInt
+  hash                              Bytes
+  whatsmeow_app_state_mutation_macs whatsmeow_app_state_mutation_macs[]
+  whatsmeow_device                  whatsmeow_device                    @relation(fields: [jid], references: [jid], onDelete: Cascade)
+
+  @@id([jid, name])
+}
+
+model whatsmeow_chat_settings {
+  our_jid          String
+  chat_jid         String
+  muted_until      BigInt           @default(0)
+  pinned           Boolean          @default(false)
+  archived         Boolean          @default(false)
+  whatsmeow_device whatsmeow_device @relation(fields: [our_jid], references: [jid], onDelete: Cascade)
+
+  @@id([our_jid, chat_jid])
+}
+
+model whatsmeow_contacts {
+  our_jid          String
+  their_jid        String
+  first_name       String?
+  full_name        String?
+  push_name        String?
+  business_name    String?
+  whatsmeow_device whatsmeow_device @relation(fields: [our_jid], references: [jid], onDelete: Cascade)
+
+  @@id([our_jid, their_jid])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsmeow_device {
+  jid                           String                          @id
+  registration_id               BigInt
+  noise_key                     Bytes
+  identity_key                  Bytes
+  signed_pre_key                Bytes
+  signed_pre_key_id             Int
+  signed_pre_key_sig            Bytes
+  adv_key                       Bytes
+  adv_details                   Bytes
+  adv_account_sig               Bytes
+  adv_device_sig                Bytes
+  platform                      String                          @default("")
+  business_name                 String                          @default("")
+  push_name                     String                          @default("")
+  adv_account_sig_key           Bytes
+  facebook_uuid                 String?                         @db.Uuid
+  whatsmeow_app_state_sync_keys whatsmeow_app_state_sync_keys[]
+  whatsmeow_app_state_version   whatsmeow_app_state_version[]
+  whatsmeow_chat_settings       whatsmeow_chat_settings[]
+  whatsmeow_contacts            whatsmeow_contacts[]
+  whatsmeow_identity_keys       whatsmeow_identity_keys[]
+  whatsmeow_message_secrets     whatsmeow_message_secrets[]
+  whatsmeow_pre_keys            whatsmeow_pre_keys[]
+  whatsmeow_sender_keys         whatsmeow_sender_keys[]
+  whatsmeow_sessions            whatsmeow_sessions[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsmeow_identity_keys {
+  our_jid          String
+  their_id         String
+  identity         Bytes
+  whatsmeow_device whatsmeow_device @relation(fields: [our_jid], references: [jid], onDelete: Cascade)
+
+  @@id([our_jid, their_id])
+}
+
+model whatsmeow_message_secrets {
+  our_jid          String
+  chat_jid         String
+  sender_jid       String
+  message_id       String
+  key              Bytes
+  whatsmeow_device whatsmeow_device @relation(fields: [our_jid], references: [jid], onDelete: Cascade)
+
+  @@id([our_jid, chat_jid, sender_jid, message_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsmeow_pre_keys {
+  jid              String
+  key_id           Int
+  key              Bytes
+  uploaded         Boolean
+  whatsmeow_device whatsmeow_device @relation(fields: [jid], references: [jid], onDelete: Cascade)
+
+  @@id([jid, key_id])
+}
+
+model whatsmeow_privacy_tokens {
+  our_jid   String
+  their_jid String
+  token     Bytes
+  timestamp BigInt
+
+  @@id([our_jid, their_jid])
+}
+
+model whatsmeow_sender_keys {
+  our_jid          String
+  chat_id          String
+  sender_id        String
+  sender_key       Bytes
+  whatsmeow_device whatsmeow_device @relation(fields: [our_jid], references: [jid], onDelete: Cascade)
+
+  @@id([our_jid, chat_id, sender_id])
+}
+
+model whatsmeow_sessions {
+  our_jid          String
+  their_id         String
+  session          Bytes?
+  whatsmeow_device whatsmeow_device @relation(fields: [our_jid], references: [jid], onDelete: Cascade)
+
+  @@id([our_jid, their_id])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model whatsmeow_version {
+  version Int?
+
+  @@ignore
+}
