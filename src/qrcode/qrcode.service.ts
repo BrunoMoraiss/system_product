@@ -7,27 +7,23 @@ import { CacheService } from 'src/services/tempory-data.service';
 export class QrcodeService {
   constructor(private cacheService: CacheService) {}
 
-  async createQrCode(data: CreateQrCodeDTO) {
-    try {
-      const req = await fetch(process.env.URL_WORKER, {
-        method: 'GET',
-      });
+  // async createQrCode(data: CreateQrCodeDTO) {
+  //   try {
+  //     const req = await fetch(process.env.URL_WORKER, {
+  //       method: 'GET',
+  //     });
 
-      const res = await req.json();
+  //     const res = await req.json();
 
-      this.cacheService.create(data.number);
+  //     this.cacheService.create(data.number);
 
-      return res;
-    } catch (err) {
-      throw new Error(err);
-    }
-  }
+  //     return res;
+  //   } catch (err) {
+  //     throw new Error(err);
+  //   }
+  // }
 
-  async verifyQrCodeStatus(key: string) {
-    return this.cacheService.findOne(key);
-  }
-
-  async changeQrCodeStatus(key: string, status: 'success' | 'failure') {
-    return this.cacheService.alterStatus(key, status);
-  }
+  // async changeQrCodeStatus(key: string, status: 'success' | 'failure') {
+  //   return this.cacheService.alterStatus(key, status);
+  // }
 }

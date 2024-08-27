@@ -2,7 +2,10 @@ import {
   ChangeQrCodeStatusDTO,
   CreateQrCodeDTO,
 } from './dto/create-qrCode.dto';
+import { VerifyQrCodeDTO } from './dto/verify-qrCode.dto';
 import { QrcodeService } from './qrcode.service';
+import { CreateQrCodeUseCase } from './useCase/create-qrcode-usecase';
+import { VerifyQrCodeUseCase } from './useCase/verify-qrcode-usecase';
 
 import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import {
@@ -17,7 +20,11 @@ import { Response } from 'express';
 @ApiTags('qrCode')
 @Controller('qrcode')
 export class QrcodeController {
-  constructor(private readonly qrcodeService: QrcodeService) {}
+  constructor(
+    private readonly qrcodeService: QrcodeService,
+    private readonly createQrCodeUseCase: CreateQrCodeUseCase,
+    private readonly verifyQrCodeUseCase: VerifyQrCodeUseCase,
+  ) {}
 
   @ApiBody({
     required: true,
@@ -39,18 +46,16 @@ export class QrcodeController {
     @Body() data: ChangeQrCodeStatusDTO,
     @Res() res: Response,
   ) {
-    let resService;
-
-    try {
-      resService = await this.qrcodeService.changeQrCodeStatus(
-        data.number,
-        data.status,
-      );
-    } catch (err) {
-      return res.status(200).send({ message: err.message, statusCode: 400 });
-    }
-
-    return res.status(200).send({ message: resService });
+    // let resService;
+    // try {
+    //   resService = await this.qrcodeService.changeQrCodeStatus(
+    //     data.number,
+    //     data.status,
+    //   );
+    // } catch (err) {
+    //   return res.status(200).send({ message: err.message, statusCode: 400 });
+    // }
+    // return res.status(200).send({ message: resService });
   }
 
   @ApiBody({
@@ -70,11 +75,16 @@ export class QrcodeController {
     },
   })
   @Post()
-  async generateQrCode(@Body() data: CreateQrCodeDTO, @Res() res: Response) {
+  async generateQrCode(
+    @Body() { number }: CreateQrCodeDTO,
+    @Res() res: Response,
+  ) {
     let resService;
 
     try {
-      resService = await this.qrcodeService.createQrCode(data);
+      resService = await this.createQrCodeUseCase.execute({
+        number,
+      });
     } catch (err) {
       return res.status(200).send({ message: err.message, statusCode: 400 });
     }
@@ -96,11 +106,15 @@ export class QrcodeController {
     status: '2XX',
     example: { number: '5511987876767', status: 'pendent' },
   })
-  @Get('verifyStatus/:number')
-  async verifyStatus(@Param('number') number: string, @Res() res: Response) {
-    const verifyStatusCache =
-      await this.qrcodeService.verifyQrCodeStatus(number);
-
-    return res.status(200).send({ number, status: verifyStatusCache });
+  @Get('verifyStatus/:key')
+  async verifyStatus(@Param() params: VerifyQrCodeDTO, @Res() res: Response) {
+    try {
+      const verifyStatusCache = await this.verifyQrCodeUseCase.execute(params);
+      return res.status(200).send(verifyStatusCache);
+    } catch (err) {
+      return res
+        .status(200)
+        .send({ errorMessage: err.message, statusCode: 404 });
+    }
   }
 }
